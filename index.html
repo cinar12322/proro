@@ -16,65 +16,142 @@
     <section class="hero-section">
         <div class="container">
             <div class="row align-items-center min-vh-100">
-                <div class="col-lg-8 mx-auto text-center">
-                    <!-- Main Title -->
-                    <h1 class="hero-title mb-4">Cash Launcher</h1>
-                    
-                    <!-- Description -->
-                    <p class="hero-description mb-5">
-                        The ultimate payment solution that launches your financial transactions into the future. 
-                        Fast, secure, and designed for the modern world.
-                    </p>
-                    
-                    <!-- Download Button -->
-                    <button id="downloadBtn" class="btn-download btn-lg">
-                        <span class="btn-text">Download Now</span>
-                        <span class="btn-icon">↓</span>
-                    </button>
+                <div class="col-lg-8 mx-auto">
+                    <div class="hero-content-wrapper">
+                        <!-- Main Title -->
+                        <h1 class="hero-title mb-4 text-center">Cash Launcher</h1>
+                        
+                        <!-- Description -->
+                        <p class="hero-description mb-5 text-center">
+                            The ultimate launcher solution that launches your gaming experience into the future. 
+                            Fast, secure, and designed for the modern world.
+                        </p>
+                        
+                        <!-- Interactive Cursor Panel -->
+                        <div class="cursor-panel-container">
+                            <div class="cursor-panel">
+                                <!-- Speed Feature -->
+                                <div class="cursor-feature active" data-feature="speed">
+                                    <div class="feature-header">
+                                        <div class="feature-icon-large">⚡</div>
+                                        <h3 class="feature-title-large">Lightning Fast</h3>
+                                    </div>
+                                    <div class="feature-content">
+                                        <p class="feature-description-large">
+                                            Cash Launcher, oyun başlatma sürecini optimize ederek saniyeler içinde oyunlarınızı açmanızı sağlar. 
+                                            Gelişmiş önbellekleme teknolojisi ve akıllı kaynak yönetimi sayesinde, launcher'ımız oyunlarınızı 
+                                            geleneksel yöntemlere göre %300 daha hızlı başlatır. SSD optimizasyonu ve paralel işleme ile 
+                                            bekleme sürelerini minimize eder, oyun deneyiminizi kesintisiz hale getirir.
+                                        </p>
+                                        <div class="feature-stats">
+                                            <div class="stat-item">
+                                                <span class="stat-value">0.8s</span>
+                                                <span class="stat-label">Ortalama Başlatma</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-value">%300</span>
+                                                <span class="stat-label">Daha Hızlı</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Security Feature -->
+                                <div class="cursor-feature" data-feature="security">
+                                    <div class="feature-header">
+                                        <div class="feature-icon-large">🔒</div>
+                                        <h3 class="feature-title-large">Bank-Level Security</h3>
+                                    </div>
+                                    <div class="feature-content">
+                                        <p class="feature-description-large">
+                                            Cash Launcher, bankacılık seviyesinde güvenlik standartları ile verilerinizi korur. 
+                                            AES-256 şifreleme, iki faktörlü kimlik doğrulama (2FA) ve gerçek zamanlı tehdit tespiti 
+                                            ile hesabınız ve oyun verileriniz tam güvende. SSL/TLS protokolleri ile tüm iletişimler 
+                                            şifrelenir ve güvenli sunucular üzerinde saklanır. Düzenli güvenlik güncellemeleri ve 
+                                            penetrasyon testleri ile sisteminiz her zaman en yüksek güvenlik seviyesinde kalır.
+                                        </p>
+                                        <div class="feature-stats">
+                                            <div class="stat-item">
+                                                <span class="stat-value">AES-256</span>
+                                                <span class="stat-label">Şifreleme</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-value">24/7</span>
+                                                <span class="stat-label">Güvenlik İzleme</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Feature Navigation -->
+                                <div class="feature-nav">
+                                    <button class="nav-dot active" data-target="speed"></button>
+                                    <button class="nav-dot" data-target="security"></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Download Button -->
+                        <div class="text-center mt-5">
+                            <button id="downloadBtn" class="btn-download btn-lg">
+                                <span class="btn-text">Download Now</span>
+                                <span class="btn-icon">↓</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
-        <div class="container py-5">
-            <div class="row">
-                <!-- Feature 1 -->
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h3 class="feature-title">Lightning Fast</h3>
-                        <p class="feature-description">
-                            Process transactions in milliseconds with our optimized payment engine.
-                        </p>
-                    </div>
+    <!-- Admin/Mod Panel -->
+    <div class="admin-panel-toggle" id="adminToggle">
+        <span class="toggle-icon">⚙️</span>
+        <span class="toggle-text">Admin Panel</span>
+    </div>
+    
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-panel-header">
+            <h3 class="admin-title">Admin/Mod Panel</h3>
+            <button class="admin-close" id="adminClose">×</button>
+        </div>
+        <div class="admin-panel-content">
+            <div class="admin-section">
+                <h4 class="admin-section-title">Mod Seçimi</h4>
+                <div class="mode-switch">
+                    <button class="mode-btn active" data-mode="normal">
+                        <span class="mode-icon">🎮</span>
+                        <span class="mode-label">Normal Oyun Modu</span>
+                    </button>
+                    <button class="mode-btn" data-mode="admin">
+                        <span class="mode-icon">🛡️</span>
+                        <span class="mode-label">Admin Modu</span>
+                    </button>
+                    <button class="mode-btn" data-mode="mod">
+                        <span class="mode-icon">🔧</span>
+                        <span class="mode-label">Mod Modu</span>
+                    </button>
                 </div>
-                
-                <!-- Feature 2 -->
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
-                        <h3 class="feature-title">Bank-Level Security</h3>
-                        <p class="feature-description">
-                            Your financial data is protected with military-grade encryption technology.
-                        </p>
+            </div>
+            <div class="admin-section">
+                <h4 class="admin-section-title">Sistem Bilgileri</h4>
+                <div class="admin-info">
+                    <div class="info-item">
+                        <span class="info-label">Launcher Versiyonu:</span>
+                        <span class="info-value">v2.1.0</span>
                     </div>
-                </div>
-                
-                <!-- Feature 3 -->
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">🌐</div>
-                        <h3 class="feature-title">Global Reach</h3>
-                        <p class="feature-description">
-                            Send and receive payments worldwide with support for multiple currencies.
-                        </p>
+                    <div class="info-item">
+                        <span class="info-label">Durum:</span>
+                        <span class="info-value status-online">Online</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Son Güncelleme:</span>
+                        <span class="info-value">2025-01-15</span>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
