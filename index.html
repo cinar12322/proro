@@ -37,11 +37,10 @@
                                         <h3 class="feature-title-large">Lightning Fast</h3>
                                     </div>
                                     <div class="feature-content">
-                                        <p class="feature-description-large">
-                                            Cash Launcher, oyun başlatma sürecini optimize ederek saniyeler içinde oyunlarınızı açmanızı sağlar. 
-                                            Gelişmiş önbellekleme teknolojisi ve akıllı kaynak yönetimi sayesinde, launcher'ımız oyunlarınızı 
-                                            geleneksel yöntemlere göre %300 daha hızlı başlatır. SSD optimizasyonu ve paralel işleme ile 
-                                            bekleme sürelerini minimize eder, oyun deneyiminizi kesintisiz hale getirir.
+                                        <p class="feature-description-large feature-praise">
+                                            Cash Launcher o kadar hızlı ki işlemler saniyeler içinde tamamlanıyor. 
+                                            Gelişmiş optimizasyon teknolojisi sayesinde oyunlarınızı anında başlatın ve 
+                                            kesintisiz bir deneyim yaşayın.
                                         </p>
                                         <div class="feature-stats">
                                             <div class="stat-item">
@@ -63,12 +62,9 @@
                                         <h3 class="feature-title-large">Bank-Level Security</h3>
                                     </div>
                                     <div class="feature-content">
-                                        <p class="feature-description-large">
-                                            Cash Launcher, bankacılık seviyesinde güvenlik standartları ile verilerinizi korur. 
-                                            AES-256 şifreleme, iki faktörlü kimlik doğrulama (2FA) ve gerçek zamanlı tehdit tespiti 
-                                            ile hesabınız ve oyun verileriniz tam güvende. SSL/TLS protokolleri ile tüm iletişimler 
-                                            şifrelenir ve güvenli sunucular üzerinde saklanır. Düzenli güvenlik güncellemeleri ve 
-                                            penetrasyon testleri ile sisteminiz her zaman en yüksek güvenlik seviyesinde kalır.
+                                        <p class="feature-description-large feature-praise">
+                                            Launcher verilerinizi bankalarla yarışır seviyede güvenli tutuyor. 
+                                            AES-256 şifreleme ve 24/7 güvenlik izleme ile verileriniz tam koruma altında.
                                         </p>
                                         <div class="feature-stats">
                                             <div class="stat-item">
@@ -83,11 +79,47 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Mods Feature -->
+                                <div class="cursor-feature" data-feature="mods">
+                                    <div class="feature-header">
+                                        <div class="feature-icon-large">🎮</div>
+                                        <h3 class="feature-title-large">Modlar</h3>
+                                    </div>
+                                    <div class="feature-content">
+                                        <p class="feature-description-large">
+                                            Adminler tarafından eklenen özel modları keşfedin ve oyun deneyiminizi zenginleştirin.
+                                        </p>
+                                        <div class="mods-container">
+                                            <button class="btn-view-mods" id="viewModsBtn">
+                                                <span class="btn-text">Modları Gör</span>
+                                                <span class="btn-icon">→</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <!-- Feature Navigation -->
                                 <div class="feature-nav">
                                     <button class="nav-dot active" data-target="speed"></button>
                                     <button class="nav-dot" data-target="security"></button>
+                                    <button class="nav-dot" data-target="mods"></button>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mods Display Panel -->
+                        <div class="mods-panel" id="modsPanel">
+                            <div class="mods-panel-header">
+                                <h3 class="mods-panel-title">Mevcut Modlar</h3>
+                                <button class="mods-panel-close" id="modsPanelClose">×</button>
+                            </div>
+                            <div class="mods-panel-content" id="modsPanelContent">
+                                <div class="mods-loading">Modlar yükleniyor...</div>
+                            </div>
+                            <div class="mods-panel-footer" id="modsPanelFooter" style="display: none;">
+                                <button class="btn-download-mod" id="downloadModBtn" style="display: none;">
+                                    <span>Modu İndir</span>
+                                </button>
                             </div>
                         </div>
                         
@@ -116,6 +148,53 @@
             <button class="admin-close" id="adminClose">×</button>
         </div>
         <div class="admin-panel-content">
+            <div class="admin-status" id="adminStatus">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span class="status-text" id="statusText">Yükleniyor...</span>
+            </div>
+            
+            <div class="admin-section" id="adminOnlySection" style="display: none;">
+                <h4 class="admin-section-title">Mod Yönetimi</h4>
+                <div class="mod-management">
+                    <div class="add-mod-form">
+                        <input type="text" id="modNameInput" class="mod-input" placeholder="Mod Adı">
+                        <textarea id="modDescInput" class="mod-textarea" placeholder="Mod Açıklaması"></textarea>
+                        <div class="file-upload-container">
+                            <label for="modFileInput" class="file-upload-label">
+                                <span class="file-upload-icon">📁</span>
+                                <span class="file-upload-text" id="fileUploadText">Dosya Seç (Opsiyonel)</span>
+                                <input type="file" id="modFileInput" class="file-upload-input" accept=".zip,.rar,.7z,.exe,.dll,.mod">
+                            </label>
+                            <div class="file-info" id="fileInfo" style="display: none;">
+                                <span class="file-name" id="fileName"></span>
+                                <button type="button" class="file-remove" id="fileRemoveBtn">×</button>
+                            </div>
+                        </div>
+                        <button class="btn-add-mod" id="addModBtn">
+                            <span>Mod Ekle</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-section" id="adminIPSection" style="display: none;">
+                <h4 class="admin-section-title">Admin IP Yönetimi</h4>
+                <div class="ip-management">
+                    <div class="add-ip-form">
+                        <input type="text" id="newIPInput" class="mod-input" placeholder="IP Adresi (örn: 192.168.1.1)">
+                        <button class="btn-add-ip" id="addIPBtn">
+                            <span>IP Ekle</span>
+                        </button>
+                    </div>
+                    <div class="ip-list-container">
+                        <h5 class="ip-list-title">Mevcut Admin IP'leri</h5>
+                        <div class="ip-list" id="ipList">
+                            <div class="ip-loading">Yükleniyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="admin-section">
                 <h4 class="admin-section-title">Mod Seçimi</h4>
                 <div class="mode-switch">
@@ -133,6 +212,7 @@
                     </button>
                 </div>
             </div>
+            
             <div class="admin-section">
                 <h4 class="admin-section-title">Sistem Bilgileri</h4>
                 <div class="admin-info">
@@ -147,6 +227,75 @@
                     <div class="info-item">
                         <span class="info-label">Son Güncelleme:</span>
                         <span class="info-value">2025-01-15</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">IP Adresi:</span>
+                        <span class="info-value" id="userIP">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-section" id="analyticsSection" style="display: none;">
+                <h4 class="admin-section-title">Kullanıcı Analitiği</h4>
+                <div class="analytics-tabs">
+                    <button class="analytics-tab active" data-tab="hotspots">Hotspot Haritası</button>
+                    <button class="analytics-tab" data-tab="utm">UTM Raporları</button>
+                </div>
+                <div class="analytics-content">
+                    <div class="analytics-tab-content active" id="hotspotsTab">
+                        <div class="hotspot-visualization" id="hotspotVisualization">
+                            <canvas id="hotspotCanvas"></canvas>
+                            <div class="hotspot-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: rgba(0, 212, 255, 0.3);"></span>
+                                    <span>Düşük Aktivite</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: rgba(0, 212, 255, 0.6);"></span>
+                                    <span>Orta Aktivite</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: rgba(0, 212, 255, 1);"></span>
+                                    <span>Yüksek Aktivite</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="analytics-tab-content" id="utmTab">
+                        <div class="utm-reports" id="utmReports">
+                            <div class="utm-stats">
+                                <div class="utm-stat-item">
+                                    <span class="utm-stat-label">Toplam Tıklama</span>
+                                    <span class="utm-stat-value" id="totalClicks">0</span>
+                                </div>
+                                <div class="utm-stat-item">
+                                    <span class="utm-stat-label">Sayfa Görüntüleme</span>
+                                    <span class="utm-stat-value" id="totalViews">0</span>
+                                </div>
+                                <div class="utm-stat-item">
+                                    <span class="utm-stat-label">Benzersiz Ziyaretçi</span>
+                                    <span class="utm-stat-value" id="uniqueVisitors">0</span>
+                                </div>
+                            </div>
+                            <div class="utm-table-container">
+                                <table class="utm-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Zaman</th>
+                                            <th>UTM Source</th>
+                                            <th>UTM Medium</th>
+                                            <th>UTM Campaign</th>
+                                            <th>Aksiyon</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="utmTableBody">
+                                        <tr>
+                                            <td colspan="5" class="no-data">Henüz veri yok</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
