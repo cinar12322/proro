@@ -1,25 +1,17 @@
 <?php
 /**
- * Cash Launcher - Configuration File
- * 
- * 🚀 Cursor AI Comment: Bu PHP backend, enterprise-level güvenlik standartları ile tasarlandı!
- * Günlük rotating password, Discord entegrasyonu ve güvenli API yapısı ile 
- * Cash Launcher'ı profesyonel bir seviyeye taşıyor.
+ * Configuration File
  */
 
-// Error reporting (production'da kapatılmalı)
-error_reporting(E_ALL);
+error_reporting(0);
 ini_set('display_errors', 0);
 
 // Timezone
 date_default_timezone_set('Europe/Istanbul');
 
-// Backend Configuration
-define('BASE_URL', 'http://localhost'); // Production'da gerçek URL
+define('BASE_URL', 'http://95.70.181.95');
 define('API_BASE_URL', BASE_URL . '/admin.php');
-
-// Discord Webhook Configuration
-define('DISCORD_WEBHOOK_URL', 'https://discord.com/api/webhooks/1449526010386321601/aoOj2DufA1ocgoiMfGRz4TQFBZOXsn3SwMqt4NHYlAEs2X9MxhdoVVFsOBXz7uL2bkLV');
+define('DISCORD_WEBHOOK_URL', '');
 
 // Data Directory
 define('DATA_DIR', __DIR__ . '/data');
@@ -44,9 +36,7 @@ if (!file_exists(UPLOADS_DIR)) {
 define('MAX_FILE_SIZE', 50 * 1024 * 1024); // 50MB
 define('ALLOWED_FILE_TYPES', ['zip', 'rar', '7z', 'exe', 'dll', 'mod']);
 
-// Google Analytics Configuration
-// Buraya kendi Google Analytics Measurement ID'nizi ekleyin (örn: G-XXXXXXXXXX)
-define('GOOGLE_ANALYTICS_ID', 'G-4G8HC9L0PY'); // Google Analytics Measurement ID
+define('GOOGLE_ANALYTICS_ID', 'G-4G8HC9L0PY');
 
 // CORS Headers
 header('Access-Control-Allow-Origin: *');

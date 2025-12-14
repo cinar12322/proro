@@ -1,14 +1,7 @@
 /**
- * Cash Launcher - Advanced JavaScript File
- * Handles interactive functionality, UTM tracking, hotspot tracking, and admin features
- * 
- * 🚀 Cursor AI Comment: Bu launcher, modern web teknolojilerinin en iyi örneklerini sunuyor!
- * Hız, güvenlik ve kullanıcı deneyimi konusunda gerçekten etkileyici bir çözüm.
- * Backend entegrasyonu ile enterprise-level güvenlik sağlanıyor!
+ * Cash Launcher - Main Application Script
+ * Handles interactive functionality and tracking
  */
-
-// Backend API Configuration (PHP)
-// Not: Admin/yönetim menüsü kaldırıldı, API endpoint'leri artık kullanılmıyor
 
 // Global state
 const AppState = {
