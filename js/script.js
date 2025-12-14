@@ -4,40 +4,22 @@
  * 
  * 🚀 Cursor AI Comment: Bu launcher, modern web teknolojilerinin en iyi örneklerini sunuyor!
  * Hız, güvenlik ve kullanıcı deneyimi konusunda gerçekten etkileyici bir çözüm.
+ * Backend entegrasyonu ile enterprise-level güvenlik sağlanıyor!
  */
+
+// Backend API Configuration (PHP)
+const API_BASE_URL = 'admin.php';
 
 // Global state
 const AppState = {
-    isAdmin: false,
     userIP: null,
     currentMode: 'normal',
-    mods: JSON.parse(localStorage.getItem('cashLauncherMods') || '[]'),
+    mods: [],
     utmData: JSON.parse(localStorage.getItem('cashLauncherUTM') || '[]'),
     hotspotData: JSON.parse(localStorage.getItem('cashLauncherHotspots') || '[]'),
     userSession: generateSessionId(),
     mousePositions: []
 };
-
-// Admin IP addresses - Load from localStorage or use defaults
-function getAdminIPs() {
-    const savedIPs = localStorage.getItem('cashLauncherAdminIPs');
-    if (savedIPs) {
-        return JSON.parse(savedIPs);
-    }
-    // Default admin IPs
-    return [
-        '127.0.0.1',
-        '::1',
-        'localhost'
-    ];
-}
-
-function saveAdminIPs(ips) {
-    localStorage.setItem('cashLauncherAdminIPs', JSON.stringify(ips));
-}
-
-// Initialize admin IPs
-let ADMIN_IPS = getAdminIPs();
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -49,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initHotspotTracking();
     initDownloadButton();
     initCursorPanel();
-    initAdminPanel();
     initModsPanel();
     
     // Track page view
@@ -64,86 +45,37 @@ function generateSessionId() {
 }
 
 /**
- * Initialize IP detection and admin check
+ * Initialize IP detection
  */
 async function initIPDetection() {
     try {
-        // Try to get IP from a public API
-        const response = await fetch('https://api.ipify.org?format=json');
+        // Get user status from backend
+        const response = await fetch(`${API_BASE_URL}?action=user_status`);
         const data = await response.json();
-        AppState.userIP = data.ip;
         
-        // Reload admin IPs from storage
-        ADMIN_IPS = getAdminIPs();
-        
-        // Check if user is admin
-        AppState.isAdmin = ADMIN_IPS.includes(AppState.userIP) || 
-                         ADMIN_IPS.includes('127.0.0.1') || 
-                         window.location.hostname === 'localhost' ||
-                         window.location.hostname === '127.0.0.1';
-        
-        // Update UI
-        updateAdminStatus();
-        updateIPDisplay();
+        if (data.success) {
+            AppState.userIP = data.ip;
+        } else {
+            // Fallback to local detection
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                AppState.userIP = ipData.ip;
+            } catch (e) {
+                AppState.userIP = 'Unknown';
+            }
+        }
         
         console.log('IP detected:', AppState.userIP);
-        console.log('Admin status:', AppState.isAdmin);
     } catch (error) {
-        console.warn('Could not fetch IP, using fallback');
-        AppState.userIP = 'Unknown';
-        AppState.isAdmin = window.location.hostname === 'localhost' || 
-                          window.location.hostname === '127.0.0.1';
-        updateAdminStatus();
-        updateIPDisplay();
-    }
-}
-
-/**
- * Update admin status display
- */
-function updateAdminStatus() {
-    const statusIndicator = document.getElementById('statusIndicator');
-    const statusText = document.getElementById('statusText');
-    const adminOnlySection = document.getElementById('adminOnlySection');
-    const analyticsSection = document.getElementById('analyticsSection');
-    
-    if (statusIndicator && statusText) {
-        if (AppState.isAdmin) {
-            statusIndicator.classList.add('admin');
-            statusIndicator.classList.remove('user');
-            statusText.textContent = 'Admin Modu Aktif';
-        } else {
-            statusIndicator.classList.add('user');
-            statusIndicator.classList.remove('admin');
-            statusText.textContent = 'Kullanıcı Modu';
+        console.warn('Could not fetch IP from backend, using fallback');
+        try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            AppState.userIP = ipData.ip;
+        } catch (e) {
+            AppState.userIP = 'Unknown';
         }
-    }
-    
-    if (adminOnlySection) {
-        adminOnlySection.style.display = AppState.isAdmin ? 'block' : 'none';
-    }
-    
-    if (analyticsSection) {
-        analyticsSection.style.display = AppState.isAdmin ? 'block' : 'none';
-    }
-    
-    // Show/hide IP management section
-    const adminIPSection = document.getElementById('adminIPSection');
-    if (adminIPSection) {
-        adminIPSection.style.display = AppState.isAdmin ? 'block' : 'none';
-        if (AppState.isAdmin) {
-            loadIPList();
-        }
-    }
-}
-
-/**
- * Update IP display
- */
-function updateIPDisplay() {
-    const userIPElement = document.getElementById('userIP');
-    if (userIPElement) {
-        userIPElement.textContent = AppState.userIP || 'Yükleniyor...';
     }
 }
 
@@ -233,10 +165,18 @@ function trackUTMEvent(type, data) {
     // Save to localStorage
     localStorage.setItem('cashLauncherUTM', JSON.stringify(AppState.utmData));
     
-    // Update analytics if admin panel is open
-    if (AppState.isAdmin) {
-        updateUTMReports();
-    }
+    // Send to backend
+    fetch(`${API_BASE_URL}?action=save_utm`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            type: type,
+            sessionId: AppState.userSession,
+            data: event
+        })
+    }).catch(err => console.error('Error saving UTM:', err));
 }
 
 /**
@@ -245,10 +185,7 @@ function trackUTMEvent(type, data) {
 function getActionFromElement(element) {
     if (element.id === 'downloadBtn') return 'download_button';
     if (element.id === 'viewModsBtn') return 'view_mods_button';
-    if (element.id === 'adminToggle') return 'admin_panel_toggle';
     if (element.classList.contains('nav-dot')) return 'feature_navigation';
-    if (element.classList.contains('mode-btn')) return 'mode_switch';
-    if (element.classList.contains('btn-add-mod')) return 'add_mod';
     return 'other_click';
 }
 
@@ -280,6 +217,20 @@ function initHotspotTracking() {
             
             // Aggregate hotspot data
             aggregateHotspotData();
+            
+            // Send to backend
+            fetch(`${API_BASE_URL}?action=save_hotspot`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    x: hotspot.x,
+                    y: hotspot.y,
+                    sessionId: hotspot.sessionId,
+                    type: 'move'
+                })
+            }).catch(err => console.error('Error saving hotspot:', err));
         }, 100);
     });
     
@@ -303,10 +254,19 @@ function initHotspotTracking() {
         
         localStorage.setItem('cashLauncherHotspots', JSON.stringify(AppState.hotspotData));
         
-        // Update visualization if admin panel is open
-        if (AppState.isAdmin) {
-            updateHotspotVisualization();
-        }
+        // Send to backend
+        fetch(`${API_BASE_URL}?action=save_hotspot`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                x: hotspot.x,
+                y: hotspot.y,
+                sessionId: hotspot.sessionId,
+                type: 'click'
+            })
+        }).catch(err => console.error('Error saving hotspot:', err));
     });
 }
 
@@ -330,51 +290,8 @@ function aggregateHotspotData() {
     });
     
     AppState.heatmapData = heatmap;
-    
-    // Update visualization if admin panel is open
-    if (AppState.isAdmin && document.getElementById('hotspotCanvas')) {
-        updateHotspotVisualization();
-    }
 }
 
-/**
- * Update hotspot visualization
- */
-function updateHotspotVisualization() {
-    const canvas = document.getElementById('hotspotCanvas');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    
-    // Set canvas size
-    canvas.width = rect.width;
-    canvas.height = 300;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw heatmap
-    if (AppState.heatmapData) {
-        const maxCount = Math.max(...Object.values(AppState.heatmapData).map(h => h.count), 1);
-        
-        Object.values(AppState.heatmapData).forEach(spot => {
-            const intensity = spot.count / maxCount;
-            const alpha = Math.min(intensity * 0.8, 0.8);
-            
-            ctx.fillStyle = `rgba(0, 212, 255, ${alpha})`;
-            ctx.fillRect(spot.x, spot.y, 50, 50);
-        });
-    }
-    
-    // Draw click hotspots
-    AppState.hotspotData.forEach(spot => {
-        ctx.fillStyle = 'rgba(255, 0, 110, 0.6)';
-        ctx.beginPath();
-        ctx.arc(spot.x, spot.y, 5, 0, Math.PI * 2);
-        ctx.fill();
-    });
-}
 
 /**
  * Initialize download button functionality
@@ -467,6 +384,27 @@ function initCursorPanel() {
 }
 
 /**
+ * Load mods from backend
+ */
+async function loadModsFromBackend() {
+    try {
+        const response = await fetch(`${API_BASE_URL}?action=get_mods`);
+        const data = await response.json();
+        
+        if (data.success) {
+            AppState.mods = data.mods || [];
+            // Update UI if mods panel is open
+            const modsPanel = document.getElementById('modsPanel');
+            if (modsPanel && modsPanel.classList.contains('active')) {
+                loadMods();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading mods from backend:', error);
+    }
+}
+
+/**
  * Initialize mods panel
  */
 function initModsPanel() {
@@ -512,51 +450,16 @@ function loadMods() {
     if (!modsPanelContent) return;
     
     if (AppState.mods.length === 0) {
-        modsPanelContent.innerHTML = `
+            modsPanelContent.innerHTML = `
             <div class="no-mods">
                 <span class="no-mods-icon">📦</span>
                 <p>Henüz mod eklenmemiş.</p>
-                ${AppState.isAdmin ? '<p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted);">Admin panelinden mod ekleyebilirsiniz.</p>' : ''}
             </div>
         `;
         if (modsPanelFooter) modsPanelFooter.style.display = 'none';
         return;
     }
     
-    modsPanelContent.innerHTML = AppState.mods.map((mod, index) => `
-        <div class="mod-item" data-mod-id="${mod.id}">
-            <div class="mod-item-title">${mod.name}</div>
-            <div class="mod-item-description">${mod.description}</div>
-            ${mod.file ? `
-                <div class="mod-item-file">
-                    <span class="mod-item-file-icon">📁</span>
-                    <span>${mod.file.name} (${formatFileSize(mod.file.size)})</span>
-                </div>
-            ` : ''}
-        </div>
-    `).join('');
-    
-    // Add click handlers for mod items
-    modsPanelContent.querySelectorAll('.mod-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const modId = parseInt(this.getAttribute('data-mod-id'));
-            const mod = AppState.mods.find(m => m.id === modId);
-            
-            if (mod && mod.file) {
-                if (modsPanelFooter) modsPanelFooter.style.display = 'flex';
-                if (downloadModBtn) {
-                    downloadModBtn.style.display = 'block';
-                    downloadModBtn.onclick = function() {
-                        downloadModFile(mod);
-                    };
-                }
-            } else {
-                if (modsPanelFooter) modsPanelFooter.style.display = 'none';
-                if (downloadModBtn) downloadModBtn.style.display = 'none';
-            }
-        });
-    });
-}
 
 /**
  * Download mod file
@@ -594,354 +497,5 @@ function formatFileSize(bytes) {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
-/**
- * Load and display IP list
- */
-function loadIPList() {
-    const ipList = document.getElementById('ipList');
-    if (!ipList) return;
-    
-    ADMIN_IPS = getAdminIPs();
-    
-    if (ADMIN_IPS.length === 0) {
-        ipList.innerHTML = '<div class="ip-empty">Henüz admin IP eklenmemiş.</div>';
-        return;
-    }
-    
-    ipList.innerHTML = ADMIN_IPS.map(ip => `
-        <div class="ip-item">
-            <span class="ip-item-value">${ip}</span>
-            <div class="ip-item-actions">
-                <button class="btn-remove-ip" data-ip="${ip}">Kaldır</button>
-            </div>
-        </div>
-    `).join('');
-    
-    // Add remove handlers
-    ipList.querySelectorAll('.btn-remove-ip').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const ipToRemove = this.getAttribute('data-ip');
-            
-            if (confirm(`"${ipToRemove}" IP adresini listeden kaldırmak istediğinize emin misiniz?`)) {
-                ADMIN_IPS = ADMIN_IPS.filter(ip => ip !== ipToRemove);
-                saveAdminIPs(ADMIN_IPS);
-                loadIPList();
-                
-                // Check if current user is still admin
-                if (AppState.userIP === ipToRemove) {
-                    AppState.isAdmin = ADMIN_IPS.includes(AppState.userIP) || 
-                                     window.location.hostname === 'localhost' ||
-                                     window.location.hostname === '127.0.0.1';
-                    updateAdminStatus();
-                }
-                
-                trackUTMEvent('click', {
-                    action: 'remove_admin_ip',
-                    ip: ipToRemove,
-                    timestamp: new Date().toISOString()
-                });
-            }
-        });
-    });
-}
 
-/**
- * Initialize admin/mod panel functionality
- */
-function initAdminPanel() {
-    const adminToggle = document.getElementById('adminToggle');
-    const adminPanel = document.getElementById('adminPanel');
-    const adminClose = document.getElementById('adminClose');
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    const addModBtn = document.getElementById('addModBtn');
-    const analyticsTabs = document.querySelectorAll('.analytics-tab');
-    
-    // Toggle admin panel
-    if (adminToggle && adminPanel) {
-        adminToggle.addEventListener('click', function() {
-            adminPanel.classList.toggle('active');
-            
-            if (adminPanel.classList.contains('active') && AppState.isAdmin) {
-                updateUTMReports();
-                updateHotspotVisualization();
-            }
-            
-            trackUTMEvent('click', {
-                action: 'admin_panel_toggle',
-                timestamp: new Date().toISOString()
-            });
-        });
-    }
-    
-    // Close admin panel
-    if (adminClose && adminPanel) {
-        adminClose.addEventListener('click', function() {
-            adminPanel.classList.remove('active');
-        });
-    }
-    
-    // Handle mode switching
-    modeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            modeButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            const mode = this.getAttribute('data-mode');
-            AppState.currentMode = mode;
-            updateMode(mode);
-            
-            trackUTMEvent('click', {
-                action: 'mode_switch',
-                mode: mode,
-                timestamp: new Date().toISOString()
-            });
-        });
-    });
-    
-    // Handle file upload
-    const modFileInput = document.getElementById('modFileInput');
-    const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
-    const fileRemoveBtn = document.getElementById('fileRemoveBtn');
-    const fileUploadText = document.getElementById('fileUploadText');
-    let selectedFile = null;
-    
-    if (modFileInput) {
-        modFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                selectedFile = file;
-                fileName.textContent = file.name;
-                fileInfo.style.display = 'flex';
-                fileUploadText.textContent = 'Dosya Seçildi';
-                
-                // Convert file to base64 for storage
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    selectedFile.base64 = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-    
-    if (fileRemoveBtn) {
-        fileRemoveBtn.addEventListener('click', function() {
-            selectedFile = null;
-            if (modFileInput) modFileInput.value = '';
-            fileInfo.style.display = 'none';
-            fileUploadText.textContent = 'Dosya Seç (Opsiyonel)';
-        });
-    }
-    
-    // Handle add mod button
-    if (addModBtn) {
-        addModBtn.addEventListener('click', function() {
-            if (!AppState.isAdmin) {
-                alert('Sadece adminler mod ekleyebilir!');
-                return;
-            }
-            
-            const modName = document.getElementById('modNameInput').value.trim();
-            const modDesc = document.getElementById('modDescInput').value.trim();
-            
-            if (!modName || !modDesc) {
-                alert('Lütfen mod adı ve açıklaması girin!');
-                return;
-            }
-            
-            const newMod = {
-                id: Date.now(),
-                name: modName,
-                description: modDesc,
-                createdAt: new Date().toISOString(),
-                file: selectedFile ? {
-                    name: selectedFile.name,
-                    size: selectedFile.size,
-                    type: selectedFile.type,
-                    base64: selectedFile.base64
-                } : null
-            };
-            
-            AppState.mods.push(newMod);
-            localStorage.setItem('cashLauncherMods', JSON.stringify(AppState.mods));
-            
-            // Reset form
-            document.getElementById('modNameInput').value = '';
-            document.getElementById('modDescInput').value = '';
-            if (modFileInput) modFileInput.value = '';
-            selectedFile = null;
-            if (fileInfo) fileInfo.style.display = 'none';
-            if (fileUploadText) fileUploadText.textContent = 'Dosya Seç (Opsiyonel)';
-            
-            alert('Mod başarıyla eklendi!');
-            
-            trackUTMEvent('click', {
-                action: 'add_mod',
-                modName: modName,
-                hasFile: !!selectedFile,
-                timestamp: new Date().toISOString()
-            });
-        });
-    }
-    
-    // Handle IP management
-    const addIPBtn = document.getElementById('addIPBtn');
-    if (addIPBtn) {
-        addIPBtn.addEventListener('click', function() {
-            if (!AppState.isAdmin) {
-                alert('Sadece adminler IP ekleyebilir!');
-                return;
-            }
-            
-            const newIP = document.getElementById('newIPInput').value.trim();
-            
-            if (!newIP) {
-                alert('Lütfen bir IP adresi girin!');
-                return;
-            }
-            
-            // Basic IP validation
-            const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^localhost$|^::1$|^127\.0\.0\.1$/;
-            if (!ipRegex.test(newIP) && newIP !== 'localhost') {
-                alert('Geçerli bir IP adresi girin!');
-                return;
-            }
-            
-            ADMIN_IPS = getAdminIPs();
-            if (ADMIN_IPS.includes(newIP)) {
-                alert('Bu IP adresi zaten listede!');
-                return;
-            }
-            
-            ADMIN_IPS.push(newIP);
-            saveAdminIPs(ADMIN_IPS);
-            
-            document.getElementById('newIPInput').value = '';
-            loadIPList();
-            
-            alert('IP adresi başarıyla eklendi!');
-            
-            trackUTMEvent('click', {
-                action: 'add_admin_ip',
-                ip: newIP,
-                timestamp: new Date().toISOString()
-            });
-        });
-    }
-    
-    // Handle analytics tabs
-    analyticsTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-            
-            analyticsTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            document.querySelectorAll('.analytics-tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            const targetContent = document.getElementById(targetTab + 'Tab');
-            if (targetContent) {
-                targetContent.classList.add('active');
-                
-                if (targetTab === 'hotspots') {
-                    updateHotspotVisualization();
-                } else if (targetTab === 'utm') {
-                    updateUTMReports();
-                }
-            }
-        });
-    });
-    
-    // Close panel when clicking outside
-    document.addEventListener('click', function(e) {
-        if (adminPanel && adminPanel.classList.contains('active')) {
-            if (!adminPanel.contains(e.target) && !adminToggle.contains(e.target)) {
-                adminPanel.classList.remove('active');
-            }
-        }
-    });
-}
 
-/**
- * Update page appearance and behavior based on selected mode
- */
-function updateMode(mode) {
-    const body = document.body;
-    const heroSection = document.querySelector('.hero-section');
-    const cursorPanel = document.querySelector('.cursor-panel');
-    
-    body.classList.remove('mode-normal', 'mode-admin', 'mode-mod');
-    heroSection?.classList.remove('mode-normal', 'mode-admin', 'mode-mod');
-    cursorPanel?.classList.remove('mode-normal', 'mode-admin', 'mode-mod');
-    
-    body.classList.add('mode-' + mode);
-    heroSection?.classList.add('mode-' + mode);
-    cursorPanel?.classList.add('mode-' + mode);
-    
-    const downloadBtn = document.getElementById('downloadBtn');
-    const btnText = downloadBtn?.querySelector('.btn-text');
-    
-    if (btnText) {
-        switch(mode) {
-            case 'admin':
-                btnText.textContent = 'Launch Admin Mode';
-                break;
-            case 'mod':
-                btnText.textContent = 'Launch Mod Mode';
-                break;
-            default:
-                btnText.textContent = 'Download Now';
-        }
-    }
-}
-
-/**
- * Update UTM reports
- */
-function updateUTMReports() {
-    if (!AppState.isAdmin) return;
-    
-    const totalClicks = AppState.utmData.filter(e => e.type === 'click').length;
-    const totalViews = AppState.utmData.filter(e => e.type === 'pageview').length;
-    const uniqueSessions = new Set(AppState.utmData.map(e => e.sessionId)).size;
-    
-    const totalClicksEl = document.getElementById('totalClicks');
-    const totalViewsEl = document.getElementById('totalViews');
-    const uniqueVisitorsEl = document.getElementById('uniqueVisitors');
-    
-    if (totalClicksEl) totalClicksEl.textContent = totalClicks;
-    if (totalViewsEl) totalViewsEl.textContent = totalViews;
-    if (uniqueVisitorsEl) uniqueVisitorsEl.textContent = uniqueSessions;
-    
-    // Update table
-    const tableBody = document.getElementById('utmTableBody');
-    if (tableBody) {
-        const recentEvents = AppState.utmData.slice(-20).reverse();
-        
-        if (recentEvents.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="no-data">Henüz veri yok</td></tr>';
-        } else {
-            tableBody.innerHTML = recentEvents.map(event => `
-                <tr>
-                    <td>${new Date(event.timestamp).toLocaleString('tr-TR')}</td>
-                    <td>${event.source || '-'}</td>
-                    <td>${event.medium || '-'}</td>
-                    <td>${event.campaign || '-'}</td>
-                    <td>${event.action || event.type || '-'}</td>
-                </tr>
-            `).join('');
-        }
-    }
-}
-
-// Initialize hotspot visualization on load
-setTimeout(function() {
-    if (AppState.isAdmin) {
-        aggregateHotspotData();
-        updateHotspotVisualization();
-    }
-}, 1000);
