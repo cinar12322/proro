@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Consent Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00d4ff;
+        }
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍪 Cookie Consent System Example</h1>
+        
+        <div class="info-box">
+            <h2>Özellikler</h2>
+            <ul>
+                <li>✅ Google Analytics 4 entegrasyonu (G-4G8HC9L0PY)</li>
+                <li>✅ GDPR uyumlu cookie banner</li>
+                <li>✅ "Tümünü Kabul Et", "Sadece Essentials", "Özelleştir" seçenekleri</li>
+                <li>✅ AI cursor prompt (banner üzerinde 2 saniye hover)</li>
+                <li>✅ localStorage ile consent saklama</li>
+                <li>✅ IP anonymization ve güvenli cookie ayarları</li>
+                <li>✅ Tamamen self-contained, vanilla JavaScript</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h2>Kullanım</h2>
+            <p>Bu sayfaya <code>cookie-consent-standalone.js</code> dosyasını ekleyin:</p>
+            <pre><code>&lt;script src="cookie-consent-standalone.js"&gt;&lt;/script&gt;</code></pre>
+            <p>Veya doğrudan HTML içine yapıştırın.</p>
+        </div>
+
+        <div class="info-box">
+            <h2>Test</h2>
+            <p>Cookie banner'ı görmek için localStorage'ı temizleyin:</p>
+            <button onclick="localStorage.removeItem('cookieConsent'); location.reload();" 
+                    style="padding: 0.75rem 1.5rem; background: #00d4ff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                Cookie Consent'i Sıfırla
+            </button>
+        </div>
+
+        <div class="info-box">
+            <h2>AI Cursor Prompt</h2>
+            <p>Cookie banner göründüğünde, banner üzerine mouse'unuzu getirin ve 2 saniye bekleyin. 
+            AI asistan popup'ı görünecektir!</p>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Script -->
+    <script src="cookie-consent-standalone.js"></script>
+</body>
+</html>
