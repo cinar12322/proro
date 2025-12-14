@@ -10,6 +10,41 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4G8HC9L0PY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      
+      // Cookie consent kontrolü - sadece reklam cookie'leri kabul edildiğinde aktif
+      // İlk yüklemede devre dışı, cookie consent verildiğinde aktif edilecek
+      // Varsayılan olarak storage'ı reddet (GDPR uyumluluğu için)
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied'
+      });
+      
+      // Eğer daha önce consent verilmişse aktif et
+      if (localStorage.getItem('cookieConsent')) {
+        try {
+          const consent = JSON.parse(localStorage.getItem('cookieConsent'));
+          if (consent.advertising) {
+            gtag('consent', 'update', {
+              'analytics_storage': 'granted',
+              'ad_storage': 'granted'
+            });
+            gtag('config', 'G-4G8HC9L0PY', {
+              'anonymize_ip': true,
+              'cookie_flags': 'SameSite=Lax;Secure'
+            });
+          }
+        } catch(e) {
+          // Cookie consent yoksa veya hatalıysa, Google Analytics yüklenmez
+        }
+      }
+    </script>
 </head>
 <body>
     <!-- Hero Section -->

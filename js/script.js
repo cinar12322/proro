@@ -695,37 +695,31 @@ async function loadGoogleAnalytics() {
         return;
     }
     
-    // Load GA ID from config first
-    await loadGoogleAnalyticsConfig();
-    
-    if (!GoogleAnalytics.id) {
-        console.log('Google Analytics ID not configured. Please set GOOGLE_ANALYTICS_ID in config.php or window.GOOGLE_ANALYTICS_ID');
-        return;
+    // Google Analytics script zaten HTML'de yüklü, sadece consent'i aktif et
+    if (window.gtag && window.dataLayer) {
+        // Enable Google Analytics storage (consent granted)
+        window.gtag('consent', 'update', {
+            'analytics_storage': 'granted',
+            'ad_storage': 'granted'
+        });
+        
+        // Initialize Google Analytics config
+        window.gtag('config', 'G-4G8HC9L0PY', {
+            'anonymize_ip': true, // GDPR compliance
+            'cookie_flags': 'SameSite=Lax;Secure'
+        });
+        
+        GoogleAnalytics.id = 'G-4G8HC9L0PY';
+        GoogleAnalytics.loaded = true;
+        GoogleAnalytics.initialized = true;
+        
+        // Track page view
+        trackGoogleAnalyticsPageView();
+        
+        console.log('✅ Google Analytics activated:', GoogleAnalytics.id);
+    } else {
+        console.log('Google Analytics script not found');
     }
-    
-    // Load Google Analytics gtag.js
-    const script1 = document.createElement('script');
-    script1.async = true;
-    script1.src = `https://www.googletagmanager.com/gtag/js?id=${GoogleAnalytics.id}`;
-    document.head.appendChild(script1);
-    
-    // Initialize Google Analytics
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    window.gtag = gtag;
-    gtag('js', new Date());
-    gtag('config', GoogleAnalytics.id, {
-        'anonymize_ip': true, // GDPR compliance
-        'cookie_flags': 'SameSite=Lax;Secure'
-    });
-    
-    GoogleAnalytics.loaded = true;
-    GoogleAnalytics.initialized = true;
-    
-    // Track page view
-    trackGoogleAnalyticsPageView();
-    
-    console.log('✅ Google Analytics loaded:', GoogleAnalytics.id);
 }
 
 /**
@@ -733,11 +727,10 @@ async function loadGoogleAnalytics() {
  */
 function disableGoogleAnalytics() {
     if (window.gtag) {
-        // Disable Google Analytics
-        window.gtag('config', GoogleAnalytics.id, {
-            'anonymize_ip': true,
-            'cookie_flags': 'SameSite=Lax;Secure',
-            'send_page_view': false
+        // Disable Google Analytics by setting storage to denied
+        window.gtag('consent', 'update', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied'
         });
     }
     
