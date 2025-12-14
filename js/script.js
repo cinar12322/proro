@@ -8,7 +8,7 @@
  */
 
 // Backend API Configuration (PHP)
-const API_BASE_URL = 'admin.php';
+// Not: Admin/yönetim menüsü kaldırıldı, API endpoint'leri artık kullanılmıyor
 
 // Global state
 const AppState = {
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initDownloadButton();
     initCursorPanel();
     initModsPanel();
+    initCookieConsent();
     
     // Track page view
     trackPageView();
@@ -48,35 +49,15 @@ function generateSessionId() {
  * Initialize IP detection
  */
 async function initIPDetection() {
+    // IP detection - using external service
     try {
-        // Get user status from backend
-        const response = await fetch(`${API_BASE_URL}?action=user_status`);
-        const data = await response.json();
-        
-        if (data.success) {
-            AppState.userIP = data.ip;
-        } else {
-            // Fallback to local detection
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipResponse.json();
-                AppState.userIP = ipData.ip;
-            } catch (e) {
-                AppState.userIP = 'Unknown';
-            }
-        }
-        
-        console.log('IP detected:', AppState.userIP);
-    } catch (error) {
-        console.warn('Could not fetch IP from backend, using fallback');
-        try {
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipResponse.json();
-            AppState.userIP = ipData.ip;
-        } catch (e) {
-            AppState.userIP = 'Unknown';
-        }
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        AppState.userIP = ipData.ip;
+    } catch (e) {
+        AppState.userIP = 'Unknown';
     }
+    console.log('IP detected:', AppState.userIP);
 }
 
 /**
@@ -165,18 +146,14 @@ function trackUTMEvent(type, data) {
     // Save to localStorage
     localStorage.setItem('cashLauncherUTM', JSON.stringify(AppState.utmData));
     
-    // Send to backend
-    fetch(`${API_BASE_URL}?action=save_utm`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            type: type,
-            sessionId: AppState.userSession,
-            data: event
-        })
-    }).catch(err => console.error('Error saving UTM:', err));
+    // Track in Google Analytics if advertising cookies are accepted
+    if (CookieConsent.advertising && GoogleAnalytics.initialized) {
+        trackGoogleAnalyticsEvent(type, {
+            event_category: 'UTM',
+            event_label: data.action || type,
+            value: 1
+        });
+    }
 }
 
 /**
@@ -218,19 +195,7 @@ function initHotspotTracking() {
             // Aggregate hotspot data
             aggregateHotspotData();
             
-            // Send to backend
-            fetch(`${API_BASE_URL}?action=save_hotspot`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    x: hotspot.x,
-                    y: hotspot.y,
-                    sessionId: hotspot.sessionId,
-                    type: 'move'
-                })
-            }).catch(err => console.error('Error saving hotspot:', err));
+            // Hotspot tracking - backend removed
         }, 100);
     });
     
@@ -254,19 +219,7 @@ function initHotspotTracking() {
         
         localStorage.setItem('cashLauncherHotspots', JSON.stringify(AppState.hotspotData));
         
-        // Send to backend
-        fetch(`${API_BASE_URL}?action=save_hotspot`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                x: hotspot.x,
-                y: hotspot.y,
-                sessionId: hotspot.sessionId,
-                type: 'click'
-            })
-        }).catch(err => console.error('Error saving hotspot:', err));
+        // Hotspot tracking - backend removed
     });
 }
 
@@ -305,6 +258,15 @@ function initDownloadButton() {
                 action: 'download_button',
                 timestamp: new Date().toISOString()
             });
+            
+            // Track download in Google Analytics
+            if (CookieConsent.advertising && GoogleAnalytics.initialized) {
+                trackGoogleAnalyticsEvent('download', {
+                    event_category: 'Engagement',
+                    event_label: 'Cash Launcher Download',
+                    value: 1
+                });
+            }
             
             alert('Thank you for downloading Cash Launcher!\n\nYour download will begin shortly...');
             simulateDownload();
@@ -385,22 +347,14 @@ function initCursorPanel() {
 
 /**
  * Load mods from backend
+ * Not: Backend removed, mods are now empty
  */
 async function loadModsFromBackend() {
-    try {
-        const response = await fetch(`${API_BASE_URL}?action=get_mods`);
-        const data = await response.json();
-        
-        if (data.success) {
-            AppState.mods = data.mods || [];
-            // Update UI if mods panel is open
-            const modsPanel = document.getElementById('modsPanel');
-            if (modsPanel && modsPanel.classList.contains('active')) {
-                loadMods();
-            }
-        }
-    } catch (error) {
-        console.error('Error loading mods from backend:', error);
+    AppState.mods = [];
+    // Update UI if mods panel is open
+    const modsPanel = document.getElementById('modsPanel');
+    if (modsPanel && modsPanel.classList.contains('active')) {
+        loadMods();
     }
 }
 
@@ -450,7 +404,7 @@ function loadMods() {
     if (!modsPanelContent) return;
     
     if (AppState.mods.length === 0) {
-            modsPanelContent.innerHTML = `
+        modsPanelContent.innerHTML = `
             <div class="no-mods">
                 <span class="no-mods-icon">📦</span>
                 <p>Henüz mod eklenmemiş.</p>
@@ -460,6 +414,15 @@ function loadMods() {
         return;
     }
     
+    // Mod listesi göster (backend kaldırıldı, modlar boş)
+    modsPanelContent.innerHTML = `
+        <div class="no-mods">
+            <span class="no-mods-icon">📦</span>
+            <p>Henüz mod eklenmemiş.</p>
+        </div>
+    `;
+    if (modsPanelFooter) modsPanelFooter.style.display = 'none';
+}
 
 /**
  * Download mod file
@@ -495,6 +458,474 @@ function formatFileSize(bytes) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
+ * ============================================
+ * Cookie Consent System
+ * ============================================
+ */
+
+// Cookie consent state
+const CookieConsent = {
+    essentials: true, // Always true
+    preferences: false,
+    advertising: false,
+    initialized: false
+};
+
+// Google Analytics configuration
+const GoogleAnalytics = {
+    id: null, // Will be loaded from config
+    loaded: false,
+    initialized: false
+};
+
+/**
+ * Initialize cookie consent system
+ */
+function initCookieConsent() {
+    // Essentials cookies are always set (via PHP session)
+    // Initialize essentials cookies on page load
+    initEssentialsCookies();
+    
+    // Load Google Analytics config (but don't load script yet)
+    loadGoogleAnalyticsConfig();
+    
+    // Check if consent was already given
+    const consentData = getCookieConsentFromStorage();
+    
+    if (consentData) {
+        CookieConsent.essentials = true;
+        CookieConsent.preferences = consentData.preferences || false;
+        CookieConsent.advertising = consentData.advertising || false;
+        CookieConsent.initialized = true;
+        
+        // Apply cookie settings (this will load GA if advertising is enabled)
+        applyCookieSettings();
+    } else {
+        // Show banner if consent not given
+        showCookieBanner();
+    }
+    
+    // Setup event listeners
+    setupCookieEventListeners();
+}
+
+/**
+ * Initialize essentials cookies (always active)
+ */
+async function initEssentialsCookies() {
+    try {
+        // Request essentials cookies from server
+        const response = await fetch('cookie-handler.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'init_essentials'
+            })
+        });
+        
+        // Essentials cookies are set by PHP, this just ensures they're initialized
+        // Session and CSRF cookies are handled server-side
+    } catch (e) {
+        // Silently fail - essentials cookies will be set when consent is given
+        console.log('Essentials cookies will be initialized with consent');
+    }
+}
+
+/**
+ * Get cookie consent from localStorage
+ */
+function getCookieConsentFromStorage() {
+    try {
+        const stored = localStorage.getItem('cookieConsent');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        console.error('Error reading cookie consent:', e);
+    }
+    return null;
+}
+
+/**
+ * Save cookie consent to localStorage and cookie
+ */
+function saveCookieConsent(preferences, advertising) {
+    const consentData = {
+        essentials: true,
+        preferences: preferences,
+        advertising: advertising,
+        timestamp: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('cookieConsent', JSON.stringify(consentData));
+    
+    // Save to cookie via PHP backend
+    saveCookieConsentToServer(consentData);
+    
+    // Update state
+    CookieConsent.preferences = preferences;
+    CookieConsent.advertising = advertising;
+    CookieConsent.initialized = true;
+    
+    // Apply settings
+    applyCookieSettings();
+}
+
+/**
+ * Save cookie consent to server via PHP
+ */
+async function saveCookieConsentToServer(consentData) {
+    try {
+        const response = await fetch('cookie-handler.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'save',
+                consent: consentData
+            })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to save cookie consent to server');
+        }
+    } catch (e) {
+        console.error('Error saving cookie consent:', e);
+    }
+}
+
+/**
+ * Apply cookie settings based on consent
+ */
+function applyCookieSettings() {
+    // Essentials are always applied (handled by PHP)
+    
+    // Apply preferences cookies if enabled
+    if (CookieConsent.preferences) {
+        setCookie('theme_preference', 'dark', 365);
+        setCookie('language_preference', 'tr', 365);
+    } else {
+        deleteCookie('theme_preference');
+        deleteCookie('language_preference');
+    }
+    
+    // Apply advertising cookies if enabled
+    if (CookieConsent.advertising) {
+        setCookie('ad_tracking', 'enabled', 365);
+        setCookie('analytics_id', generateAnalyticsId(), 365);
+        
+        // Load Google Analytics if advertising is enabled
+        loadGoogleAnalytics();
+    } else {
+        deleteCookie('ad_tracking');
+        deleteCookie('analytics_id');
+        
+        // Disable Google Analytics if advertising is disabled
+        disableGoogleAnalytics();
+    }
+}
+
+/**
+ * Set a cookie
+ */
+function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax${location.protocol === 'https:' ? ';Secure' : ''}`;
+}
+
+/**
+ * Delete a cookie
+ */
+function deleteCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax${location.protocol === 'https:' ? ';Secure' : ''}`;
+}
+
+/**
+ * Generate analytics ID
+ */
+function generateAnalyticsId() {
+    return 'analytics_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+/**
+ * ============================================
+ * Google Analytics Integration
+ * ============================================
+ */
+
+/**
+ * Load Google Analytics ID from config
+ */
+async function loadGoogleAnalyticsConfig() {
+    // First check if it's already set as a global variable
+    if (typeof window.GOOGLE_ANALYTICS_ID !== 'undefined' && window.GOOGLE_ANALYTICS_ID) {
+        GoogleAnalytics.id = window.GOOGLE_ANALYTICS_ID;
+        return;
+    }
+    
+    // Try to get GA ID from config endpoint
+    try {
+        const response = await fetch('get-config.php?key=google_analytics_id');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.value) {
+                GoogleAnalytics.id = data.value;
+            }
+        }
+    } catch (e) {
+        // Config endpoint doesn't exist or failed, will use manual setup
+        console.log('Google Analytics config not found. Set window.GOOGLE_ANALYTICS_ID or configure in config.php');
+    }
+}
+
+/**
+ * Load Google Analytics script
+ */
+async function loadGoogleAnalytics() {
+    // Only load if advertising cookies are accepted and not already loaded
+    if (!CookieConsent.advertising || GoogleAnalytics.loaded) {
+        return;
+    }
+    
+    // Load GA ID from config first
+    await loadGoogleAnalyticsConfig();
+    
+    if (!GoogleAnalytics.id) {
+        console.log('Google Analytics ID not configured. Please set GOOGLE_ANALYTICS_ID in config.php or window.GOOGLE_ANALYTICS_ID');
+        return;
+    }
+    
+    // Load Google Analytics gtag.js
+    const script1 = document.createElement('script');
+    script1.async = true;
+    script1.src = `https://www.googletagmanager.com/gtag/js?id=${GoogleAnalytics.id}`;
+    document.head.appendChild(script1);
+    
+    // Initialize Google Analytics
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', GoogleAnalytics.id, {
+        'anonymize_ip': true, // GDPR compliance
+        'cookie_flags': 'SameSite=Lax;Secure'
+    });
+    
+    GoogleAnalytics.loaded = true;
+    GoogleAnalytics.initialized = true;
+    
+    // Track page view
+    trackGoogleAnalyticsPageView();
+    
+    console.log('✅ Google Analytics loaded:', GoogleAnalytics.id);
+}
+
+/**
+ * Disable Google Analytics
+ */
+function disableGoogleAnalytics() {
+    if (window.gtag) {
+        // Disable Google Analytics
+        window.gtag('config', GoogleAnalytics.id, {
+            'anonymize_ip': true,
+            'cookie_flags': 'SameSite=Lax;Secure',
+            'send_page_view': false
+        });
+    }
+    
+    GoogleAnalytics.loaded = false;
+    GoogleAnalytics.initialized = false;
+}
+
+/**
+ * Track page view in Google Analytics
+ */
+function trackGoogleAnalyticsPageView() {
+    if (GoogleAnalytics.initialized && window.gtag) {
+        window.gtag('event', 'page_view', {
+            'page_title': document.title,
+            'page_location': window.location.href,
+            'page_path': window.location.pathname
+        });
+    }
+}
+
+/**
+ * Track custom event in Google Analytics
+ */
+function trackGoogleAnalyticsEvent(eventName, eventParams = {}) {
+    if (GoogleAnalytics.initialized && window.gtag && CookieConsent.advertising) {
+        window.gtag('event', eventName, eventParams);
+    }
+}
+
+/**
+ * Show cookie banner
+ */
+function showCookieBanner() {
+    const banner = document.getElementById('cookieBanner');
+    if (banner) {
+        setTimeout(() => {
+            banner.classList.add('show');
+        }, 500);
+    }
+}
+
+/**
+ * Hide cookie banner
+ */
+function hideCookieBanner() {
+    const banner = document.getElementById('cookieBanner');
+    if (banner) {
+        banner.classList.remove('show');
+    }
+}
+
+/**
+ * Show cookie settings panel
+ */
+function showCookieSettingsPanel() {
+    const panel = document.getElementById('cookieSettingsPanel');
+    if (panel) {
+        // Load current settings
+        const consentData = getCookieConsentFromStorage();
+        if (consentData) {
+            document.getElementById('preferencesSwitch').checked = consentData.preferences || false;
+            document.getElementById('advertisingSwitch').checked = consentData.advertising || false;
+            updateCookieStatus();
+        }
+        
+        panel.classList.add('show');
+        hideCookieBanner();
+    }
+}
+
+/**
+ * Hide cookie settings panel
+ */
+function hideCookieSettingsPanel() {
+    const panel = document.getElementById('cookieSettingsPanel');
+    if (panel) {
+        panel.classList.remove('show');
+    }
+}
+
+/**
+ * Update cookie status indicators
+ */
+function updateCookieStatus() {
+    const preferencesEnabled = document.getElementById('preferencesSwitch').checked;
+    const advertisingEnabled = document.getElementById('advertisingSwitch').checked;
+    
+    // Update preferences status
+    const prefStatus = preferencesEnabled ? 'Aktif' : 'Kapalı';
+    document.getElementById('preferencesStatus').textContent = prefStatus;
+    document.getElementById('preferencesStatus').classList.toggle('active', preferencesEnabled);
+    document.getElementById('preferencesStatus2').textContent = prefStatus;
+    document.getElementById('preferencesStatus2').classList.toggle('active', preferencesEnabled);
+    
+    // Update advertising status
+    const advStatus = advertisingEnabled ? 'Aktif' : 'Kapalı';
+    document.getElementById('advertisingStatus').textContent = advStatus;
+    document.getElementById('advertisingStatus').classList.toggle('active', advertisingEnabled);
+    document.getElementById('advertisingStatus2').textContent = advStatus;
+    document.getElementById('advertisingStatus2').classList.toggle('active', advertisingEnabled);
+}
+
+/**
+ * Setup cookie event listeners
+ */
+function setupCookieEventListeners() {
+    // Accept All button
+    const acceptAllBtn = document.getElementById('acceptAllBtn');
+    if (acceptAllBtn) {
+        acceptAllBtn.addEventListener('click', function() {
+            saveCookieConsent(true, true);
+            hideCookieBanner();
+        });
+    }
+    
+    // Accept Essentials Only button
+    const acceptEssentialsBtn = document.getElementById('acceptEssentialsBtn');
+    if (acceptEssentialsBtn) {
+        acceptEssentialsBtn.addEventListener('click', function() {
+            saveCookieConsent(false, false);
+            hideCookieBanner();
+        });
+    }
+    
+    // Customize button
+    const customizeBtn = document.getElementById('customizeBtn');
+    if (customizeBtn) {
+        customizeBtn.addEventListener('click', function() {
+            showCookieSettingsPanel();
+        });
+    }
+    
+    // Cookie settings link
+    const cookieSettingsLink = document.getElementById('cookieSettingsLink');
+    if (cookieSettingsLink) {
+        cookieSettingsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showCookieSettingsPanel();
+        });
+    }
+    
+    // Close settings panel
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener('click', function() {
+            hideCookieSettingsPanel();
+        });
+    }
+    
+    // Cancel settings
+    const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+    if (cancelSettingsBtn) {
+        cancelSettingsBtn.addEventListener('click', function() {
+            hideCookieSettingsPanel();
+        });
+    }
+    
+    // Save settings
+    const saveCookieSettingsBtn = document.getElementById('saveCookieSettingsBtn');
+    if (saveCookieSettingsBtn) {
+        saveCookieSettingsBtn.addEventListener('click', function() {
+            const preferences = document.getElementById('preferencesSwitch').checked;
+            const advertising = document.getElementById('advertisingSwitch').checked;
+            saveCookieConsent(preferences, advertising);
+            hideCookieSettingsPanel();
+        });
+    }
+    
+    // Switch change listeners
+    const preferencesSwitch = document.getElementById('preferencesSwitch');
+    if (preferencesSwitch) {
+        preferencesSwitch.addEventListener('change', updateCookieStatus);
+    }
+    
+    const advertisingSwitch = document.getElementById('advertisingSwitch');
+    if (advertisingSwitch) {
+        advertisingSwitch.addEventListener('change', updateCookieStatus);
+    }
+    
+    // Close panel on outside click
+    const settingsPanel = document.getElementById('cookieSettingsPanel');
+    if (settingsPanel) {
+        settingsPanel.addEventListener('click', function(e) {
+            if (e.target === settingsPanel) {
+                hideCookieSettingsPanel();
+            }
+        });
+    }
 }
 
 

@@ -87,7 +87,7 @@
                                     </div>
                                     <div class="feature-content">
                                         <p class="feature-description-large">
-                                            Adminler tarafından eklenen özel modları keşfedin ve oyun deneyiminizi zenginleştirin.
+                                            Özel modları keşfedin ve oyun deneyiminizi zenginleştirin.
                                         </p>
                                         <div class="mods-container">
                                             <button class="btn-view-mods" id="viewModsBtn">
@@ -143,14 +143,147 @@
                 <div class="col-12 text-center">
                     <p class="footer-text">
                         &copy; 2025 Cash Launcher. All rights reserved.
+                        <a href="#" id="cookieSettingsLink" class="cookie-settings-link">Cookie Ayarları</a>
                     </p>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- Cookie Consent Banner -->
+    <div id="cookieBanner" class="cookie-banner">
+        <div class="cookie-banner-content">
+            <div class="cookie-banner-header">
+                <h3 class="cookie-banner-title">🍪 Cookie Kullanımı</h3>
+                <p class="cookie-banner-description">
+                    Web sitemiz, size en iyi deneyimi sunmak için çerezler kullanmaktadır. 
+                    Zorunlu çerezler site çalışması için gereklidir. Diğer çerezler için onayınızı almak istiyoruz.
+                </p>
+            </div>
+            <div class="cookie-banner-actions">
+                <button id="acceptAllBtn" class="cookie-btn cookie-btn-primary">Tümünü Kabul Et</button>
+                <button id="acceptEssentialsBtn" class="cookie-btn cookie-btn-secondary">Sadece Essentials</button>
+                <button id="customizeBtn" class="cookie-btn cookie-btn-link">Özelleştir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Settings Panel -->
+    <div id="cookieSettingsPanel" class="cookie-settings-panel">
+        <div class="cookie-settings-content">
+            <div class="cookie-settings-header">
+                <h3 class="cookie-settings-title">Cookie Ayarları</h3>
+                <button id="closeSettingsBtn" class="cookie-settings-close">×</button>
+            </div>
+            <div class="cookie-settings-body">
+                <p class="cookie-settings-description">
+                    Aşağıdaki kategorilerden hangi çerezlerin kullanılacağını seçebilirsiniz.
+                </p>
+                
+                <!-- Essentials Category -->
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <div class="cookie-category-info">
+                            <h4 class="cookie-category-title">Essentials (Zorunlu)</h4>
+                            <p class="cookie-category-description">
+                                Site çalışması için gerekli çerezler. Session, güvenlik (CSRF) ve temel işlevsellik için kullanılır.
+                            </p>
+                        </div>
+                        <div class="cookie-switch-container">
+                            <label class="cookie-switch disabled">
+                                <input type="checkbox" checked disabled>
+                                <span class="cookie-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="cookie-category-items">
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">Session Cookie</span>
+                            <span class="cookie-item-status">Aktif</span>
+                        </div>
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">CSRF Token</span>
+                            <span class="cookie-item-status">Aktif</span>
+                        </div>
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">Site İşlevselliği</span>
+                            <span class="cookie-item-status">Aktif</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences Category -->
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <div class="cookie-category-info">
+                            <h4 class="cookie-category-title">Preferences (Tercihler)</h4>
+                            <p class="cookie-category-description">
+                                Tema, dil tercihleri gibi kullanıcı ayarlarını hatırlamak için kullanılır.
+                            </p>
+                        </div>
+                        <div class="cookie-switch-container">
+                            <label class="cookie-switch">
+                                <input type="checkbox" id="preferencesSwitch">
+                                <span class="cookie-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="cookie-category-items">
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">Tema Tercihi</span>
+                            <span class="cookie-item-status" id="preferencesStatus">Kapalı</span>
+                        </div>
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">Dil Tercihi</span>
+                            <span class="cookie-item-status" id="preferencesStatus2">Kapalı</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advertising Category -->
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <div class="cookie-category-info">
+                            <h4 class="cookie-category-title">Advertising (Reklam)</h4>
+                            <p class="cookie-category-description">
+                                Reklam ve takip çerezleri. Kişiselleştirilmiş reklamlar için kullanılır.
+                            </p>
+                        </div>
+                        <div class="cookie-switch-container">
+                            <label class="cookie-switch">
+                                <input type="checkbox" id="advertisingSwitch">
+                                <span class="cookie-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="cookie-category-items">
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">Reklam Takibi</span>
+                            <span class="cookie-item-status" id="advertisingStatus">Kapalı</span>
+                        </div>
+                        <div class="cookie-item">
+                            <span class="cookie-item-name">Analitik</span>
+                            <span class="cookie-item-status" id="advertisingStatus2">Kapalı</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="cookie-settings-footer">
+                <button id="saveCookieSettingsBtn" class="cookie-btn cookie-btn-primary">Seçimleri Kaydet</button>
+                <button id="cancelSettingsBtn" class="cookie-btn cookie-btn-secondary">İptal</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Google Analytics Configuration -->
+    <script>
+        // Google Analytics ID - config.php'den otomatik yüklenir
+        // Manuel ayarlamak için: window.GOOGLE_ANALYTICS_ID = 'G-XXXXXXXXXX';
+        // config.php'de GOOGLE_ANALYTICS_ID tanımlayın
+    </script>
     
     <!-- Custom JavaScript -->
     <script src="js/script.js"></script>

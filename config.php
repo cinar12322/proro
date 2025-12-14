@@ -44,6 +44,10 @@ if (!file_exists(UPLOADS_DIR)) {
 define('MAX_FILE_SIZE', 50 * 1024 * 1024); // 50MB
 define('ALLOWED_FILE_TYPES', ['zip', 'rar', '7z', 'exe', 'dll', 'mod']);
 
+// Google Analytics Configuration
+// Buraya kendi Google Analytics Measurement ID'nizi ekleyin (örn: G-XXXXXXXXXX)
+define('GOOGLE_ANALYTICS_ID', 'G-4G8HC9L0PY'); // Google Analytics Measurement ID
+
 // CORS Headers
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
